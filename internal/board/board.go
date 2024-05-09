@@ -38,6 +38,13 @@ type ChessBoardModel struct {
 	height        int
 }
 
+func emptyPiece() Piece {
+    return Piece{
+        Color: None,
+        PieceType: Empty,
+    }
+}
+
 func startBoard() [64]Piece {
     return [64]Piece{
         {Black, Tower},
@@ -166,6 +173,9 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// The "up" and "k" keys move the curPieceIndex up
 		case "up", "k":
+            p := m.board[0]
+            m.board[16] = p
+            m.board[0] = emptyPiece()
 			if m.curPieceIndex > 0 {
 				m.curPieceIndex -= 8
 			}
