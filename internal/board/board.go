@@ -2,8 +2,8 @@ package board
 
 import (
 	"fmt"
-	"strconv"
 	tea "github.com/charmbracelet/bubbletea"
+	"strconv"
 )
 
 type PieceType string
@@ -31,7 +31,7 @@ type Piece struct {
 }
 
 type ChessBoardModel struct {
-	board         [64]Piece
+	board         [8][8]Piece
 	curPieceIndex int
 	whiteView     bool
 	width         int
@@ -39,79 +39,95 @@ type ChessBoardModel struct {
 }
 
 func emptyPiece() Piece {
-    return Piece{
-        Color: None,
-        PieceType: Empty,
-    }
+	return Piece{
+		Color:     None,
+		PieceType: Empty,
+	}
 }
 
-func startBoard() [64]Piece {
-    return [64]Piece{
-        {Black, Tower},
-        {Black, Knigth},
-        {Black, Bishop},
-        {Black, Queen},
-        {Black, King},
-        {Black, Bishop},
-        {Black, Knigth},
-        {Black, Tower},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {Black, Peon},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {None, Empty},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Peon},
-        {White, Tower},
-        {White, Knigth},
-        {White, Bishop},
-        {White, Queen},
-        {White, King},
-        {White, Bishop},
-        {White, Knigth},
-        {White, Tower},
-    }
+func startBoard() [8][8]Piece {
+	return [8][8]Piece{
+		{
+			{Black, Tower},
+			{Black, Knigth},
+			{Black, Bishop},
+			{Black, Queen},
+			{Black, King},
+			{Black, Bishop},
+			{Black, Knigth},
+			{Black, Tower},
+		},
+		{
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+			{Black, Peon},
+		},
+		{
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+		},
+		{
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+		},
+		{
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+		},
+		{
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+			{None, Empty},
+		},
+		{
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+			{White, Peon},
+		},
+		{
+			{White, Tower},
+			{White, Knigth},
+			{White, Bishop},
+			{White, Queen},
+			{White, King},
+			{White, Bishop},
+			{White, Knigth},
+			{White, Tower},
+		},
+	}
 }
 
 func InitChessModel() ChessBoardModel {
@@ -123,7 +139,6 @@ func InitChessModel() ChessBoardModel {
 		height:        0,
 	}
 }
-
 
 func (m ChessBoardModel) Init() tea.Cmd {
 	return nil
@@ -139,6 +154,52 @@ func padStr(pad int, str string) string {
 	return fmt.Sprintf(middle, str)
 }
 
+func possibleMoves(piece Piece, pos int) []int {
+	// King
+	// Queen
+	// Tower
+	// Bishop
+	// Knigth
+	// Peon
+	// Empty
+	ret := make([]int, 8)
+	// color := piece.Color
+	switch piece.PieceType {
+	case King:
+		{
+
+		}
+	case Queen:
+		{
+
+		}
+	case Tower:
+		{
+
+		}
+	case Bishop:
+		{
+
+		}
+	case Knigth:
+		{
+
+		}
+	case Peon:
+		{
+			// if condition {
+			//
+			// }
+
+		}
+	case Empty:
+		{
+
+		}
+	}
+	return ret
+}
+
 func (m ChessBoardModel) View() string {
 	accum := ""
 	// skip up
@@ -146,15 +207,15 @@ func (m ChessBoardModel) View() string {
 		accum += "\n"
 	}
 	accum += padStrNewLine(m.width/2+5, "----------")
-    // print board
-    for i := 0; i < 64; i += 8 {
-        inner := "|"
-        for j := 0; j < 8; j++ {
-            inner += string(m.board[i+j].PieceType)
-        }
-        inner += "|"
-        accum += padStrNewLine(m.width/2+5,inner)
-    }
+	// print board
+	for i := 0; i < 8; i++  {
+		inner := "|"
+		for j := 0; j < 8; j++ {
+			inner += string(m.board[i][j].PieceType)
+		}
+		inner += "|"
+		accum += padStrNewLine(m.width/2+5, inner)
+	}
 	accum += padStrNewLine(m.width/2+5, "----------")
 	return accum
 }
@@ -173,9 +234,9 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// The "up" and "k" keys move the curPieceIndex up
 		case "up", "k":
-            p := m.board[0]
-            m.board[16] = p
-            m.board[0] = emptyPiece()
+			p := m.board[0][0]
+			m.board[2][0] = p
+			m.board[0][0] = emptyPiece()
 			if m.curPieceIndex > 0 {
 				m.curPieceIndex -= 8
 			}
