@@ -16,7 +16,7 @@ const (
 	Bishop           = "B"
 	Knigth           = "H"
 	Peon             = "P"
-	Empty            = " "
+	Empty            = "."
 )
 
 type Position struct {
