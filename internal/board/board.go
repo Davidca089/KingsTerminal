@@ -1,140 +1,30 @@
 package board
 
 import (
-	"fmt"
+	// "fmt"
+	"github.com/Davidca089/chess_cli/internal/handlers"
+	. "github.com/Davidca089/chess_cli/internal/structs"
+	"github.com/Davidca089/chess_cli/internal/utils"
 	tea "github.com/charmbracelet/bubbletea"
-	"strconv"
 )
-
-type PieceType string
-type Color int
-
-const (
-	White Color = 0
-	Black       = 1
-	None        = 2
-)
-
-const (
-	King   PieceType = "K"
-	Queen            = "Q"
-	Tower            = "T"
-	Bishop           = "B"
-	Knigth           = "H"
-	Peon             = "P"
-	Empty            = " "
-)
-
-type Piece struct {
-	Color     Color
-	PieceType PieceType
-}
 
 type ChessBoardModel struct {
 	board         [8][8]Piece
-	curPieceIndex int
+	curX          int
+	curY          int
 	whiteView     bool
+	pieceSelected bool
 	width         int
 	height        int
 }
 
-func emptyPiece() Piece {
-	return Piece{
-		Color:     None,
-		PieceType: Empty,
-	}
-}
-
-func startBoard() [8][8]Piece {
-	return [8][8]Piece{
-		{
-			{Black, Tower},
-			{Black, Knigth},
-			{Black, Bishop},
-			{Black, Queen},
-			{Black, King},
-			{Black, Bishop},
-			{Black, Knigth},
-			{Black, Tower},
-		},
-		{
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-			{Black, Peon},
-		},
-		{
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-		},
-		{
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-		},
-		{
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-		},
-		{
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-			{None, Empty},
-		},
-		{
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-			{White, Peon},
-		},
-		{
-			{White, Tower},
-			{White, Knigth},
-			{White, Bishop},
-			{White, Queen},
-			{White, King},
-			{White, Bishop},
-			{White, Knigth},
-			{White, Tower},
-		},
-	}
-}
-
 func InitChessModel() ChessBoardModel {
 	return ChessBoardModel{
-		board:         startBoard(),
-		curPieceIndex: 0,
+		board:         StartBoard(),
+		curX:          0,
+		curY:          0,
 		whiteView:     true,
+		pieceSelected: false,
 		width:         0,
 		height:        0,
 	}
@@ -144,17 +34,12 @@ func (m ChessBoardModel) Init() tea.Cmd {
 	return nil
 }
 
-func padStrNewLine(pad int, str string) string {
-	middle := "%" + strconv.Itoa(pad) + "s"
-	return fmt.Sprintf(middle, str) + "\n"
+func (m *ChessBoardModel) movePiece(oldX, oldY, newX, newY int) {
+	m.board[newY][newX] = m.board[oldY][oldX]
+	m.board[oldY][oldX] = EmptyPiece()
 }
 
-func padStr(pad int, str string) string {
-	middle := "%" + strconv.Itoa(pad) + "s"
-	return fmt.Sprintf(middle, str)
-}
-
-func possibleMoves(piece Piece, pos int) []int {
+func (m *ChessBoardModel) possibleMoves(x, y int) []Position {
 	// King
 	// Queen
 	// Tower
@@ -162,42 +47,25 @@ func possibleMoves(piece Piece, pos int) []int {
 	// Knigth
 	// Peon
 	// Empty
-	ret := make([]int, 8)
+	m.curX = x
+	m.curY = y
+	piece := m.board[y][x]
 	// color := piece.Color
 	switch piece.PieceType {
 	case King:
-		{
-
-		}
+		return handlers.KingMoves(piece, x, y)
 	case Queen:
-		{
-
-		}
+		return handlers.QueenMoves(piece, x, y)
 	case Tower:
-		{
-
-		}
+		return handlers.TowerMoves(piece, x, y)
 	case Bishop:
-		{
-
-		}
+		return handlers.BishopMoves(piece, x, y)
 	case Knigth:
-		{
-
-		}
+		return handlers.KnightMoves(piece, x, y)
 	case Peon:
-		{
-			// if condition {
-			//
-			// }
-
-		}
-	case Empty:
-		{
-
-		}
+		return handlers.PeonMoves(piece, x, y)
 	}
-	return ret
+	return nil
 }
 
 func (m ChessBoardModel) View() string {
@@ -206,18 +74,44 @@ func (m ChessBoardModel) View() string {
 	for range m.height/2 - 4 {
 		accum += "\n"
 	}
-	accum += padStrNewLine(m.width/2+5, "----------")
+	accum += utils.PadStrNewLine(m.width/2+5, "----------")
 	// print board
-	for i := 0; i < 8; i++  {
+	for i := 0; i < 8; i++ {
 		inner := "|"
 		for j := 0; j < 8; j++ {
 			inner += string(m.board[i][j].PieceType)
 		}
 		inner += "|"
-		accum += padStrNewLine(m.width/2+5, inner)
+		accum += utils.PadStrNewLine(m.width/2+5, inner)
 	}
-	accum += padStrNewLine(m.width/2+5, "----------")
+	accum += utils.PadStrNewLine(m.width/2+5, "----------")
 	return accum
+}
+
+func (m ChessBoardModel) collectPieces() ([16]Position, [16]Position) {
+	var blackPieces [16]Position
+	var whitePieces [16]Position
+
+	w := 0
+	b := 0
+	for y := range 8 {
+		for x := range 8 {
+			if m.board[y][x].Color == White {
+				whitePieces[w] = Position{X: x, Y: y}
+				w++
+			} else if m.board[y][x].Color == Black {
+				blackPieces[b] = Position{X: x, Y: y}
+				b++
+			}
+		}
+	}
+
+	// Reverse so getting pieces is intuitive from black's side
+	for i, j := 0, len(blackPieces)-1; i < j; i, j = i+1, j-1 {
+		blackPieces[i], blackPieces[j] = blackPieces[j], blackPieces[i]
+	}
+
+	return whitePieces, blackPieces
 }
 
 func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -227,23 +121,27 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.width = msg.Width
 	case tea.KeyMsg:
-		// Cool, what was the actual key pressed?
+		whitePieces, _ := m.collectPieces()
 		switch msg.String() {
 		case "ctrl+c", "q", "ctrl+d":
 			return m, tea.Quit
+		case "esc":
+            m.pieceSelected = false
+			return m, tea.Quit
 
 		// The "up" and "k" keys move the curPieceIndex up
-		case "up", "k":
-			p := m.board[0][0]
-			m.board[2][0] = p
-			m.board[0][0] = emptyPiece()
-			if m.curPieceIndex > 0 {
-				m.curPieceIndex -= 8
-			}
+		case "up", "a":
+			pieceX, pieceY := whitePieces[0].X, whitePieces[0].Y
+			p := m.possibleMoves(pieceX, pieceY)
+			x, y := p[0].X, p[0].Y
+			// fmt.Println(x)
+			// fmt.Println(y)
+			// fmt.Println(m.curY)
+			// fmt.Println(m.curX)
+			m.movePiece(m.curX, m.curY, x, y)
 
 		// The "down" and "j" keys move the curPieceIndex down
 		case "down", "j":
-			m.curPieceIndex += 8
 			// if m.curPieceIndex < 8 {
 			// }
 
