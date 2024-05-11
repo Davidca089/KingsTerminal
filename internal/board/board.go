@@ -37,11 +37,6 @@ func (m ChessBoardModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *ChessBoardModel) movePiece(oldX, oldY, newX, newY int) {
-	m.board[newY][newX] = m.board[oldY][oldX]
-	m.board[oldY][oldX] = EmptyPiece()
-}
-
 func (m *ChessBoardModel) possibleMoves(x, y int) []Position {
 	m.curX = x
 	m.curY = y
@@ -85,7 +80,7 @@ func (m ChessBoardModel) View() string {
 	return accum
 }
 
-func (m ChessBoardModel) collectPiecesPosition() ([16]Position, [16]Position) {
+func (m *ChessBoardModel) collectPiecesPosition() ([16]Position, [16]Position) {
 	var blackPieces [16]Position
 	var whitePiecesPos [16]Position
 
@@ -140,6 +135,21 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.pieceSelected {
 				break
 			}
+			for _, pos := range m.prevPosition {
+				x := pos.X
+				y := pos.Y
+				piece := m.board[m.curY][m.curX]
+				if m.board[y][x].PieceType == PieceType(msg.String()) {
+					m.board[y][x] = Piece{Color: White, PieceType: piece.PieceType, DisplayInfo: WhiteCol}
+					m.board[m.curY][m.curX] = EmptyPiece()
+                    m.curX = x
+                    m.curY = y
+				} else {
+					m.board[y][x] = EmptyPiece()
+				}
+			}
+            m.prevPosition = nil
+			m.pieceSelected = false
 
 		default:
 			for i, r := range keys {
