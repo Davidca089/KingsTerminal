@@ -8,24 +8,28 @@ import (
 )
 
 type ChessBoardModel struct {
-	board              [8][8]Piece
-	curX               int
-	curY               int
-	whiteView          bool
-	pieceSelected      bool
-	width              int
-	height             int
+	board         [8][8]Piece
+	prevPosition  []Position
+	curX          int
+	curY          int
+	whiteView     bool
+	pieceSelected bool
+	modePad       int
+	width         int
+	height        int
 }
 
 func InitChessModel() ChessBoardModel {
 	return ChessBoardModel{
-		board:              StartBoard(),
-		curX:               0,
-		curY:               0,
-		whiteView:          true,
-		pieceSelected:      false,
-		width:              0,
-		height:             0,
+		board:         StartBoard(),
+		prevPosition:  make([]Position, 0),
+		curX:          0,
+		curY:          0,
+		modePad:       0,
+		whiteView:     true,
+		pieceSelected: false,
+		width:         0,
+		height:        0,
 	}
 }
 
@@ -39,37 +43,28 @@ func (m *ChessBoardModel) movePiece(oldX, oldY, newX, newY int) {
 }
 
 func (m *ChessBoardModel) possibleMoves(x, y int) []Position {
-	// King
-	// Queen
-	// Tower
-	// Bishop
-	// Knigth
-	// Peon
-	// Empty
 	m.curX = x
 	m.curY = y
 	piece := m.board[y][x]
-	// color := piece.Color
 	switch piece.PieceType {
 	case King:
-		return handlers.KingMoves(piece, x, y)
+		return handlers.KingMoves(&m.board, piece, x, y)
 	case Queen:
-		return handlers.QueenMoves(piece, x, y)
+		return handlers.QueenMoves(&m.board, piece, x, y)
 	case Tower:
-		return handlers.TowerMoves(piece, x, y)
+		return handlers.TowerMoves(&m.board, piece, x, y)
 	case Bishop:
-		return handlers.BishopMoves(piece, x, y)
+		return handlers.BishopMoves(&m.board, piece, x, y)
 	case Knigth:
-		return handlers.KnightMoves(piece, x, y)
+		return handlers.KnightMoves(&m.board, piece, x, y)
 	case Peon:
-		return handlers.PeonMoves(piece, x, y)
+		return handlers.PeonMoves(&m.board, piece, x, y)
 	}
 	return nil
 }
 
+// How i selected all these values is magical
 func (m ChessBoardModel) View() string {
-    var Reset = "\033[0m"
-    var Red = "\033[31m"
 	accum := ""
 	// skip up
 	for range m.height/2 - 4 {
@@ -77,37 +72,29 @@ func (m ChessBoardModel) View() string {
 	}
 	accum += utils.PadStrNewLine(m.width/2+5, "----------")
 	// print board
-    var selectedPad = 0
 	for y := 0; y < 8; y++ {
 		inner := "|"
 		for x := 0; x < 8; x++ {
-			if m.pieceSelected && x == m.curX && y == m.curY {
-                // fmt.Println("MEA")
-				inner += Red + (string(m.board[y][x].PieceType)) + Reset
-                selectedPad = 9
-			} else {
-				inner += string(m.board[y][x].PieceType)
-			}
+			piece := m.board[y][x]
+			inner += string(piece.DisplayInfo) + string(piece.PieceType) + string(Reset)
 		}
 		inner += "|"
-        // fmt.Println(inner)
-		accum += utils.PadStrNewLine(m.width/2+5 + selectedPad, inner)
-        selectedPad = 0
+		accum += utils.PadStrNewLine(m.width/2+77, inner)
 	}
 	accum += utils.PadStrNewLine(m.width/2+5, "----------")
 	return accum
 }
 
-func (m ChessBoardModel) collectPieces() ([16]Position, [16]Position) {
+func (m ChessBoardModel) collectPiecesPosition() ([16]Position, [16]Position) {
 	var blackPieces [16]Position
-	var whitePieces [16]Position
+	var whitePiecesPos [16]Position
 
 	w := 0
 	b := 0
 	for y := range 8 {
 		for x := range 8 {
 			if m.board[y][x].Color == White {
-				whitePieces[w] = Position{X: x, Y: y}
+				whitePiecesPos[w] = Position{X: x, Y: y}
 				w++
 			} else if m.board[y][x].Color == Black {
 				blackPieces[b] = Position{X: x, Y: y}
@@ -116,12 +103,12 @@ func (m ChessBoardModel) collectPieces() ([16]Position, [16]Position) {
 		}
 	}
 
-	// Reverse so getting pieces is intuitive from black's side
+	// Reverse so selecting pieces is intuitive from black's side
 	for i, j := 0, len(blackPieces)-1; i < j; i, j = i+1, j-1 {
 		blackPieces[i], blackPieces[j] = blackPieces[j], blackPieces[i]
 	}
 
-	return whitePieces, blackPieces
+	return whitePiecesPos, blackPieces
 }
 
 func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -131,53 +118,49 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.width = msg.Width
 	case tea.KeyMsg:
-		whitePieces, _ := m.collectPieces()
+		whitePiecesPos, _ := m.collectPiecesPosition()
+		keys := []rune{'a', 'o', 'e', 'u', 'h', 't', 'n', 's'}
 		switch msg.String() {
 		case "ctrl+c", "q", "ctrl+d":
 			return m, tea.Quit
 
 		case "esc":
 			m.pieceSelected = false
-			return m, tea.Quit
 
-		// The "up" and "k" keys move the curPieceIndex up
-		case "a":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[0].X, whitePieces[0].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "o":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[1].X, whitePieces[1].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "e":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[2].X, whitePieces[2].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "u":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[3].X, whitePieces[3].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "h":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[4].X, whitePieces[4].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "t":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[5].X, whitePieces[5].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "n":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[6].X, whitePieces[6].Y
-			m.possibleMoves(pieceX, pieceY)
-		case "s":
-			m.pieceSelected = true
-			pieceX, pieceY := whitePieces[7].X, whitePieces[7].Y
-			m.possibleMoves(pieceX, pieceY)
+		case ",":
+			if len(whitePiecesPos) < 8 {
+				m.modePad = 0
+			} else {
+				m.modePad = 8
+			}
+		case "'":
+			m.modePad = 0
 
-		// The "down" and "j" keys move the curPieceIndex down
-		case "down", "j":
-			// if m.curPieceIndex < 8 {
-			// }
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+			if !m.pieceSelected {
+				break
+			}
+
+		default:
+			for i, r := range keys {
+				if msg.String() == string(r) {
+					m.pieceSelected = true
+					// Update all colors before exploring new key
+					m.board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
+					for _, pos := range m.prevPosition {
+						m.board[pos.Y][pos.X].PieceType = "."
+						m.board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
+					}
+					// Explore new possibilites
+					pieceX, pieceY := whitePiecesPos[i+m.modePad].X, whitePiecesPos[i+m.modePad].Y
+					m.board[pieceY][pieceX].SetDisplayInfo(Red)
+					for _, pos := range m.possibleMoves(pieceX, pieceY) {
+						m.board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+						m.prevPosition = append(m.prevPosition, pos)
+					}
+
+				}
+			}
 
 		}
 	}
