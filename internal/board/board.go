@@ -154,6 +154,7 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.curY = y
 				} else {
 					m.board[y][x] = pos.PrevPiece
+
 				}
 			}
 			m.prevPosition = nil
