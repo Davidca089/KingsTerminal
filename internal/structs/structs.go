@@ -37,6 +37,11 @@ type Position struct {
 	Y int
 }
 
+type Previous struct {
+    PrevPiece Piece
+    Position
+}
+
 type Piece struct {
 	Color       Color
 	PieceType   PieceType

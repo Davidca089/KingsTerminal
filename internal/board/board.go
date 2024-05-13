@@ -9,7 +9,7 @@ import (
 
 type ChessBoardModel struct {
 	board         [8][8]Piece
-	prevPosition  []Position
+	prevPosition  []Previous
 	curX          int
 	curY          int
 	whiteView     bool
@@ -22,7 +22,7 @@ type ChessBoardModel struct {
 func InitChessModel() ChessBoardModel {
 	return ChessBoardModel{
 		board:         StartBoard(),
-		prevPosition:  make([]Position, 0),
+		prevPosition:  make([]Previous, 0),
 		curX:          0,
 		curY:          0,
 		modePad:       0,
@@ -37,7 +37,7 @@ func (m ChessBoardModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *ChessBoardModel) possibleMoves(x, y int) []Position {
+func (m *ChessBoardModel) possibleMoves(x, y int) []Previous {
 	m.curX = x
 	m.curY = y
 	piece := m.board[y][x]
@@ -115,22 +115,29 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		whitePiecesPos, _ := m.collectPiecesPosition()
 		keys := []rune{'a', 'o', 'e', 'u', 'h', 't', 'n', 's'}
 		switch msg.String() {
-		case "ctrl+c", "q", "ctrl+d":
+		case "ctrl+c", "ctrl+d":
 			return m, tea.Quit
 
 		case "esc":
 			m.pieceSelected = false
+			m.board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
+			for _, pos := range m.prevPosition {
+				m.board[pos.Y][pos.X].PieceType = pos.PrevPiece.PieceType
+				m.board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
+			}
+			m.prevPosition = nil
 
-		case ",":
+		case "q":
 			if len(whitePiecesPos) < 8 {
 				m.modePad = 0
 			} else {
 				m.modePad = 8
 			}
-		case "'":
+		case ";":
 			m.modePad = 0
 
-		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "'", ",",".", "p", "y", "f", "g", "c","r","l":
 			if !m.pieceSelected {
 				break
 			}
@@ -139,12 +146,14 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				y := pos.Y
 				piece := m.board[m.curY][m.curX]
 				if m.board[y][x].PieceType == PieceType(msg.String()) {
-					m.board[y][x] = Piece{Color: White, PieceType: piece.PieceType, DisplayInfo: WhiteCol}
+					m.board[y][x] = Piece{Color: White,
+						PieceType:   piece.PieceType,
+						DisplayInfo: WhiteCol}
 					m.board[m.curY][m.curX] = EmptyPiece()
 					m.curX = x
 					m.curY = y
 				} else {
-					m.board[y][x] = EmptyPiece()
+					m.board[y][x] = pos.PrevPiece
 				}
 			}
 			m.prevPosition = nil
@@ -157,7 +166,7 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Update all colors before exploring new key
 					m.board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
 					for _, pos := range m.prevPosition {
-						m.board[pos.Y][pos.X].PieceType = "."
+						m.board[pos.Y][pos.X].PieceType = pos.PrevPiece.PieceType
 						m.board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
 					}
 					m.prevPosition = nil
