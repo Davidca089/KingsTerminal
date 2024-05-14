@@ -25,7 +25,7 @@ const (
 const (
 	King   PieceType = "K"
 	Queen            = "Q"
-	Tower            = "T"
+	Tower            = "R"
 	Bishop           = "B"
 	Knigth           = "H"
 	Peon             = "P"
@@ -50,6 +50,14 @@ type Piece struct {
 
 func (p *Piece) SetDisplayInfo(dinfo DisplayInfo) {
 	p.DisplayInfo = dinfo
+}
+
+func NewPiece(color Color, pieceType PieceType, displayInfo DisplayInfo) Piece {
+	return Piece{
+		Color:       color,
+		PieceType:   pieceType,
+		DisplayInfo: displayInfo,
+	}
 }
 
 func EmptyPiece() Piece {
