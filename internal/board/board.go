@@ -174,9 +174,7 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				y := pos.Y
 				piece := m.Board[m.curY][m.curX]
 				if m.Board[y][x].PieceType == PieceType(msg.String()) {
-					m.Board[y][x] = Piece{Color: White,
-						PieceType:   piece.PieceType,
-						DisplayInfo: WhiteCol}
+					m.Board[y][x] = piece
 					m.Board[m.curY][m.curX] = EmptyPiece()
 					m.curX = x
 					m.curY = y
