@@ -10,10 +10,10 @@ import (
 type ChessBoardModel struct {
 	board         [8][8]Piece
 	prevPosition  []Previous
-	curX          int
-	curY          int
 	whiteView     bool
 	pieceSelected bool
+	curX          int
+	curY          int
 	modePad       int
 	width         int
 	height        int
@@ -83,18 +83,41 @@ func (m ChessBoardModel) View() string {
 func (m *ChessBoardModel) collectPiecesPosition() ([16]Position, [16]Position) {
 	var blackPieces [16]Position
 	var whitePiecesPos [16]Position
+	// we will inspect from the top-down to determine the piece key placement
+	var whiteStack [8][]Position
 	w := 0
 	b := 0
-	for y := range 8 {
-		for x := range 8 {
+	for x := range 8 {
+		for y := range 8 {
 			if m.board[y][x].Color == White {
-				whitePiecesPos[w] = Position{X: x, Y: y}
-				w++
+				whiteStack[w] = append(whiteStack[w], Position{X: x, Y: y})
 			} else if m.board[y][x].Color == Black {
 				blackPieces[b] = Position{X: x, Y: y}
 				b++
 			}
 		}
+		w++
+	}
+
+	// unstack
+	k := 0
+    p := 0
+    hasElements := true
+	var whiteStackTmp [8][]Position
+	for hasElements {
+        hasElements = false
+		for _, x := range whiteStack {
+            if len(x) == 0 {
+                continue
+            }
+            hasElements = true
+            whitePiecesPos[p] = x[0]
+            whiteStackTmp[k] = x[1:]
+			k++
+            p++
+		}
+        k = 0
+        whiteStack = whiteStackTmp
 	}
 
 	// Reverse so selecting pieces is intuitive from black's side
@@ -137,7 +160,7 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.modePad = 0
 
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9",
-            "'", ",",".", "p", "y", "f", "g", "c","r","l":
+			"'", ",", ".", "p", "y", "f", "g", "c", "r", "l":
 			if !m.pieceSelected {
 				break
 			}
@@ -154,7 +177,6 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.curY = y
 				} else {
 					m.board[y][x] = pos.PrevPiece
-
 				}
 			}
 			m.prevPosition = nil
