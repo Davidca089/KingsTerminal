@@ -66,8 +66,8 @@ func PawnMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 func KingMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 	ret := make([]Previous, 0)
 	print_val := 1
-	for i := x - 1; i <= x+1; i++ {
-		for j := y - 1; j <= y+1; j++ {
+	for j := y - 1; j <= y+1; j++ {
+		for i := x - 1; i <= x+1; i++ {
 			if i == x && y == j {
 				continue
 			}
@@ -87,9 +87,79 @@ func KingMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 }
 func QueenMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 	ret := make([]Previous, 0)
-	// for i:= rang{
-	//
-	// }
+	print_val := 1
+	for j := y - 1; j <= y+1; j++ {
+		for i := x - 1; i <= x+1; i++ {
+			if i == x && y == j {
+				continue
+			}
+
+			val, list, stop := addPos(ret, board, i, j, print_val, p)
+			ret = list
+			if !stop && !val {
+				print_val++
+			}
+			if !val {
+				continue
+			}
+			print_val++
+		}
+	}
+	for y_cross, x_cross := y-2, x-2; y_cross >= 0 || x_cross >= 0; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross--
+		x_cross--
+	}
+
+	for y_cross, x_cross := y+2, x+2; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross++
+		x_cross++
+	}
+
+	for y_cross, x_cross := y+2, x-2; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross++
+		x_cross--
+	}
+
+	for y_cross, x_cross := y-2, x+2; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross--
+		x_cross++
+	}
 	return ret
 }
 func TowerMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
@@ -226,7 +296,7 @@ func KnightMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 		val, list, _ := addPos(ret, board, xMove, yMove, print_val, p)
 		ret = list
 		if !val {
-            continue
+			continue
 		}
 		print_val++
 	}
