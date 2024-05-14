@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"strconv"
 	. "github.com/Davidca089/chess_cli/internal/structs"
+	"strconv"
 )
 
 // ret true, list if there are still elements to be processed
@@ -202,7 +202,33 @@ func BishopMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 
 	return ret
 }
+
 func KnightMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 	ret := make([]Previous, 0)
+	// make it circular so moving is intuitive
+	coords := []Position{
+		{Y: y - 1, X: x - 2},
+		{Y: y - 2, X: x - 1},
+
+		{Y: y - 2, X: x + 1},
+		{Y: y - 1, X: x + 2},
+
+		{Y: y + 1, X: x + 2},
+		{Y: y + 2, X: x + 1},
+
+		{Y: y + 2, X: x - 1},
+		{Y: y + 1, X: x - 2},
+	}
+
+	print_val := 1
+	for _, pos := range coords {
+		xMove, yMove := pos.X, pos.Y
+		val, list, _ := addPos(ret, board, xMove, yMove, print_val, p)
+		ret = list
+		if !val {
+            continue
+		}
+		print_val++
+	}
 	return ret
 }
