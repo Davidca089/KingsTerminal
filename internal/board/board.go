@@ -24,8 +24,8 @@ func InitChessModel() ChessBoardModel {
 	return ChessBoardModel{
 		Board:         StartBoard(),
 		prevPosition:  make([]Previous, 0),
-		curX:          0,
-		curY:          0,
+		curX:          4,
+		curY:          6,
 		modePad:       0,
 		whiteView:     true,
 		shiftPressed:  false,
@@ -54,8 +54,8 @@ func (m *ChessBoardModel) possibleMoves(x, y int) []Previous {
 		return handlers.BishopMoves(&m.Board, piece, x, y)
 	case Knigth:
 		return handlers.KnightMoves(&m.Board, piece, x, y)
-	case Peon:
-		return handlers.PeonMoves(&m.Board, piece, x, y)
+	case Pawn:
+		return handlers.PawnMoves(&m.Board, piece, x, y)
 	}
 	return nil
 }
@@ -83,10 +83,11 @@ func (m ChessBoardModel) View() string {
 }
 
 func (m ChessBoardModel) CollectPiecesPosition() ([16]Position, [16]Position) {
-	var blackPieces [16]Position
+	var blackPiecesPos [16]Position
 	var whitePiecesPos [16]Position
 	// we will inspect from the top-down to determine the piece key placement
 	var whiteStack [8][]Position
+	var blackStack [8][]Position
 	w := 0
 	b := 0
 	for x := range 8 {
@@ -94,11 +95,11 @@ func (m ChessBoardModel) CollectPiecesPosition() ([16]Position, [16]Position) {
 			if m.Board[y][x].Color == White {
 				whiteStack[w] = append(whiteStack[w], Position{X: x, Y: y})
 			} else if m.Board[y][x].Color == Black {
-				blackPieces[b] = Position{X: x, Y: y}
-				b++
+				blackStack[b] = append(blackStack[b], Position{X: x, Y: y})
 			}
 		}
 		w++
+        b++
 	}
 
 	// unstack
@@ -121,12 +122,32 @@ func (m ChessBoardModel) CollectPiecesPosition() ([16]Position, [16]Position) {
 		k = 0
 	}
 
-	// Reverse so selecting pieces is intuitive from black's side
-	for i, j := 0, len(blackPieces)-1; i < j; i, j = i+1, j-1 {
-		blackPieces[i], blackPieces[j] = blackPieces[j], blackPieces[i]
+	// unstack
+	k = 0
+	p = 0
+	hasElements = true
+	for hasElements {
+		hasElements = false
+		for _, x := range blackStack {
+			if len(x) == 0 {
+				k++
+				continue
+			}
+			hasElements = true
+			blackPiecesPos[p] = x[0]
+			blackStack[k] = x[1:]
+			p++
+			k++
+		}
+		k = 0
 	}
 
-	return whitePiecesPos, blackPieces
+	// Reverse so selecting pieces is intuitive from black's side
+	for i, j := 0, len(blackPiecesPos)-1; i < j; i, j = i+1, j-1 {
+		blackPiecesPos[i], blackPiecesPos[j] = blackPiecesPos[j], blackPiecesPos[i]
+	}
+
+	return whitePiecesPos, blackPiecesPos
 }
 
 func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -135,33 +156,72 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
+
 	case tea.KeyMsg:
 		whitePiecesPos, _ := m.CollectPiecesPosition()
+		for i, pos := range whitePiecesPos {
+			if m.modePad == 0 {
+				if i >= 8 {
+					break
+				}
+				m.Board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+			} else {
+				if i < 8 {
+                    continue
+				}
+				m.Board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+			}
+		}
 		keys := []rune{'a', 'o', 'e', 'u', 'h', 't', 'n', 's'}
 		switch msg.String() {
-        
+
 		case "ctrl+c", "ctrl+d":
 			return m, tea.Quit
 
 		case "esc":
 			m.pieceSelected = false
-			m.Board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
+			m.Board[m.curY][m.curX].SetDisplayInfo(Yellow)
 			for _, pos := range m.prevPosition {
 				m.Board[pos.Y][pos.X] = pos.PrevPiece
 				m.Board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
 			}
+
 			m.prevPosition = nil
 
 		case "shift+tab":
-			if !m.shiftPressed {
-				m.modePad = 8
-			} else {
-				m.modePad = 0
+			// if key selected u clear everything out first
+			if m.pieceSelected {
+				m.Board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
+				for _, pos := range m.prevPosition {
+					m.Board[pos.Y][pos.X] = pos.PrevPiece
+				}
+				m.pieceSelected = false
+				m.prevPosition = nil
 			}
 
-			if len(whitePiecesPos) < 8 {
+			if !m.shiftPressed {
+				m.modePad = 8
+				if len(whitePiecesPos) < 8 {
+					m.modePad = 0
+				}
+				for i, pos := range whitePiecesPos {
+					if i < 8 {
+						m.Board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
+					} else {
+						m.Board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+					}
+				}
+			} else {
 				m.modePad = 0
+				for i, pos := range whitePiecesPos {
+					if i < 8 {
+						m.Board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+					} else {
+						m.Board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
+					}
+				}
 			}
+
 			m.shiftPressed = !m.shiftPressed
 
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -178,6 +238,7 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.Board[m.curY][m.curX] = EmptyPiece()
 					m.curX = x
 					m.curY = y
+					m.Board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
 				} else {
 					m.Board[y][x] = pos.PrevPiece
 				}
@@ -189,18 +250,18 @@ func (m ChessBoardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for i, r := range keys {
 				if msg.String() == string(r) {
 					m.pieceSelected = true
-					// Update all colors before exploring new key
-					m.Board[m.curY][m.curX].SetDisplayInfo(WhiteCol)
+					// Restore all colors before exploring new key
+					// m.Board[m.curY][m.curX].SetDisplayInfo(Yellow)
 					for _, pos := range m.prevPosition {
-						m.Board[pos.Y][pos.X]= pos.PrevPiece
-						m.Board[pos.Y][pos.X].SetDisplayInfo(WhiteCol)
+						m.Board[pos.Y][pos.X] = pos.PrevPiece
 					}
+
 					m.prevPosition = nil
 					// Explore new possibilites
 					pieceX, pieceY := whitePiecesPos[i+m.modePad].X, whitePiecesPos[i+m.modePad].Y
 					m.Board[pieceY][pieceX].SetDisplayInfo(Red)
 					for _, pos := range m.possibleMoves(pieceX, pieceY) {
-						m.Board[pos.Y][pos.X].SetDisplayInfo(Yellow)
+						m.Board[pos.Y][pos.X].SetDisplayInfo(Green)
 						m.prevPosition = append(m.prevPosition, pos)
 					}
 

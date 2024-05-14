@@ -28,7 +28,7 @@ const (
 	Tower            = "R"
 	Bishop           = "B"
 	Knigth           = "H"
-	Peon             = "P"
+	Pawn             = "P"
 	Empty            = "."
 )
 
@@ -81,14 +81,14 @@ func StartBoard() [8][8]Piece {
 			{Color: Black, PieceType: Tower, DisplayInfo: WhiteCol},
 		},
 		{
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: Black, PieceType: Peon, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: Black, PieceType: Pawn, DisplayInfo: WhiteCol},
 		},
 		{
 			{Color: None, PieceType: Empty, DisplayInfo: WhiteCol},
@@ -131,14 +131,14 @@ func StartBoard() [8][8]Piece {
 			{Color: None, PieceType: Empty, DisplayInfo: WhiteCol},
 		},
 		{
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
-			{Color: White, PieceType: Peon, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
+			{Color: White, PieceType: Pawn, DisplayInfo: WhiteCol},
 		},
 		{
 			{Color: White, PieceType: Tower, DisplayInfo: WhiteCol},

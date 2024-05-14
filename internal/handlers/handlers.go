@@ -22,7 +22,7 @@ func addPos(ret []Previous, board *[8][8]Piece, x, y, val int, curPiece Piece) (
 		board[y][x] = NewPiece(None, PieceType(strconv.Itoa(val)), WhiteCol)
 	}
 
-	if scanning.Color != col && scanning.Color != None && curPiece.PieceType != Peon {
+	if scanning.Color != col && scanning.Color != None && curPiece.PieceType != Pawn {
 		return false, append(ret, Previous{Position: Position{X: x, Y: y},
 			PrevPiece: scanning}), !stop
 	}
@@ -30,7 +30,7 @@ func addPos(ret []Previous, board *[8][8]Piece, x, y, val int, curPiece Piece) (
 	return true, append(ret, Previous{Position: Position{X: x, Y: y}, PrevPiece: scanning}), !stop
 }
 
-func PeonMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
+func PawnMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 	ret := make([]Previous, 0)
 	i := 1
 	if p.Color == White {
