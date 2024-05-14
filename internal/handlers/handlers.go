@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	. "github.com/Davidca089/chess_cli/internal/structs"
 	"strconv"
+	. "github.com/Davidca089/chess_cli/internal/structs"
 )
 
 // ret true, list if there are still elements to be processed
@@ -12,8 +12,8 @@ func addPos(ret []Previous, board *[8][8]Piece, x, y, val int, curPiece Piece) (
 	if y < 0 || y > 7 || x < 0 || x > 7 || board[y][x].Color == col {
 		return false, ret, stop
 	}
-	scanning := board[y][x]
 
+	scanning := board[y][x]
 	keys := []string{"'", ",", ".", "p", "y", "f", "g", "c", "r", "l"}
 	if val >= 10 {
 		// if its more than this? WOMP WOMP
@@ -143,6 +143,63 @@ func TowerMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 }
 func BishopMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
 	ret := make([]Previous, 0)
+	print_val := 1
+	for y_cross, x_cross := y-1, x-1; y_cross >= 0 || x_cross >= 0; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross--
+		x_cross--
+	}
+
+	for y_cross, x_cross := y+1, x+1; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross++
+		x_cross++
+	}
+
+	for y_cross, x_cross := y+1, x-1; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross++
+		x_cross--
+	}
+
+	for y_cross, x_cross := y-1, x+1; y_cross < 8 || x_cross < 8; {
+		val, list, stop := addPos(ret, board, x_cross, y_cross, print_val, p)
+		ret = list
+		if !stop && !val {
+			print_val++
+		}
+		if !val {
+			break
+		}
+		print_val++
+		y_cross--
+		x_cross++
+	}
+
 	return ret
 }
 func KnightMoves(board *[8][8]Piece, p Piece, x, y int) []Previous {
